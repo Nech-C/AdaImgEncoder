@@ -49,3 +49,30 @@ class CustomTransformerDecoderLayer(TransformerDecoderLayer):
                                 is_causal=is_causal,
                                 need_weights=False)[0]
         return self.dropout2(x)
+
+class CustomTransformerDecoder(nn.TransformerDecoder):
+    def __init__(self, d_model, d_encoding, nhead, dim_feedforward, dropout, num_layers, norm=None):
+        decoder_layer = CustomTransformerDecoderLayer(d_model, d_encoding, nhead, dim_feedforward, dropout)
+        super(CustomTransformerDecoder, self).__init__(decoder_layer, num_layers, norm)
+
+    def forward(self,
+                tgt: torch.Tensor,
+                memory: torch.Tensor,
+                tgt_mask: torch.Tensor = None,
+                memory_mask: torch.Tensor = None,
+                tgt_key_padding_mask: torch.Tensor = None,
+                memory_key_padding_mask: torch.Tensor = None,
+                tgt_is_causal: bool = False,
+                memory_is_causal: bool = False) -> torch.Tensor:
+        output = tgt
+
+        for mod in self.layers:
+            output = mod(output, memory, tgt_mask=tgt_mask, memory_mask=memory_mask,
+                         tgt_key_padding_mask=tgt_key_padding_mask,
+                         memory_key_padding_mask=memory_key_padding_mask,
+                         tgt_is_causal=tgt_is_causal, memory_is_causal=memory_is_causal)
+
+        if self.norm is not None:
+            output = self.norm(output)
+
+        return output
