@@ -11,11 +11,12 @@ class CustomTransformerDecoderLayer(TransformerDecoderLayer):
                  nhead,
                  dim_feedforward=2048,
                  dropout=0.1,
-                 norm_first=False):
-        super(CustomTransformerDecoderLayer, self).__init__(d_model, nhead)
+                 norm_first=False,
+                 batch_first=True):
+        super(CustomTransformerDecoderLayer, self).__init__(d_model, nhead, dim_feedforward, dropout, batch_first=batch_first, norm_first=norm_first)
         # Override the multihead_attn layer to attend to encoded image with different dim
         self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout,
-                                                    kdim=encoded_img_dim, vdim=encoded_img_dim)
+                                                    kdim=encoded_img_dim, vdim=encoded_img_dim, batch_first=batch_first)
 
     def forward(self,
                 tgt: torch.Tensor,
