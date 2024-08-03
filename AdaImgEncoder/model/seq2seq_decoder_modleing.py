@@ -71,7 +71,6 @@ class CustomImageEncoder(nn.Module):
         super().__init__()
         self.decoder = CustomTransformerDecoder(d_model, d_encoding, nhead, dim_feedforward,
                                                 dropout, num_layers, norm)
-        self.projection = nn.Linear(d_model, output_dim)
         self.max_length = max_length
 
     def forward(self, tgt, memory, tgt_mask=None, memory_mask=None, tgt_key_padding_mask=None,
@@ -80,9 +79,17 @@ class CustomImageEncoder(nn.Module):
         output = self.decoder(tgt, memory, tgt_mask=tgt_mask, memory_mask=memory_mask,
                               tgt_key_padding_mask=tgt_key_padding_mask,
                               memory_key_padding_mask=memory_key_padding_mask)
-        return self.projection(output)
+        return output
 
     def generate(self, memory, start_token, max_length):
+        """ Generate a sequence of tokens using the decoder.
+        Args:
+            memory: the encoded image
+            start_token: the start token for the generated sequence
+            max_length: the maximum length of the generated sequence
+        Returns:
+            input_seq: the generated sequence of tokens
+        """
         device = next(self.parameters()).device
         batch_size = memory.size(0)
 
